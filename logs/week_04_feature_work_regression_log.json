@@ -50,11 +50,11 @@
     {
       "column": "all 12 columns",
       "action": "drop the union of the two rules above",
-      "reason": "measured against repairing the spellings, dropping costs 12.82 EUR of mean absolute error, nearly five standard errors and 10 of 10 draws; it is recorded here because this file is indexed positionally by every later week, so its length is fixed, and the cost of that is a number rather than an assertion",
+      "reason": "measured against repairing the spellings, dropping costs 19.34 EUR of mean absolute error, nearly seven standard errors and 19 of 20 splits; it is recorded here because this file is indexed positionally by every later week, so its length is fixed, and the cost of that is a number rather than an assertion",
       "rows_affected": 600,
       "carries": {
         "treatment": "drop",
-        "cost_eur": 14.46,
+        "cost_eur": 19.34,
         "rows_out": 4000,
         "dtypes": {
           "year": "Int64",
@@ -64,13 +64,15 @@
     },
     {
       "column": "11 feature columns",
-      "action": "missing values LEFT OPEN; the 'median / own level' plan goes to later weeks",
-      "reason": "a median computed here would be computed over the rows each later week holds out to score on, so the file would carry a value derived from its own test set; the plan won the comparison above and each week applies it inside its own split",
+      "action": "missing values LEFT OPEN; the 'KNN (k=5) / own level' plan goes to later weeks",
+      "reason": "a fill computed here would be computed over the rows each later week holds out to score on, so the file would carry a value derived from its own test set; the plan beat the training median by 37.22 EUR on 19 of 20 splits, and each week applies it inside its own split, with KNN on standardised numeric columns",
       "rows_affected": 1537,
       "carries": {
         "applied": false,
         "fill": {
-          "numeric": "median",
+          "numeric": "KNN",
+          "n_neighbors": 5,
+          "standardised": true,
           "categorical": "own level"
         },
         "numeric": [
@@ -92,8 +94,8 @@
     },
     {
       "column": "mpg, mileage",
-      "action": "log1p, and log1p on nothing else",
-      "reason": "measured column by column against ten folds: mpg earns -44.11 EUR +/- 5.40 while engineSize costs +109.98 +/- 6.24 and year +384.87 +/- 16.12, and the plausible blanket rules lose, 'every skewed column' by +84.68 and 'all seven' by +79.95; tax at -2.79 +/- 0.87 and mileage at +7.85 +/- 14.43 are inside the 111 EUR the choice of split moves, so the score cannot separate them and the raw range does: mileage spans 150,000 against tax's 580, and a column that wide governs every distance and every first gradient step taken before scaling; taking mileage rather than tax costs 21.14 EUR here and is the same recipe in every week that inherits it",
+      "action": "outlier treatment: log1p, and log1p on nothing else",
+      "reason": "the 1.5*IQR rule removes 29.43% of the file, 1,043 rows on tax alone, and what it deletes is the cheap end of the market and the hybrids rather than errors; log1p compresses the long tails of mpg and mileage instead of deleting those cars, and it fits nothing, so each later week applies it inside its own split",
       "rows_affected": 2,
       "carries": {
         "applied": false,
@@ -102,22 +104,6 @@
           "mpg",
           "mileage"
         ],
-        "rejected": [
-          "engineSize",
-          "year",
-          "tax",
-          "paintQuality%",
-          "previousOwners"
-        ]
-      }
-    },
-    {
-      "column": "7 numeric columns",
-      "action": "NO outlier treatment",
-      "reason": "the IQR rule at k=1.5 removes 29.43% of the file, 1,043 rows on tax alone because 44.8% of cars sit at exactly 145 and the box is 20 euros wide; what it deletes is not a random third, the rows it keeps average 18,442 EUR against 12,617 for the rows it deletes, so it deletes the cheap end of the market the model will be asked about",
-      "rows_affected": 0,
-      "carries": {
-        "applied": false,
         "outliers": "keep",
         "rule_tested": "IQR k=1.5"
       }
@@ -125,20 +111,20 @@
     {
       "column": "the design matrix",
       "action": "NO scaler",
-      "reason": "measured over ten folds, the four candidates agree on MAE to within 1.32 EUR against a standard error of about 40, because ordinary least squares on a full-rank design is scale-invariant in fit; cond(X) does fall from 4.312e+07 to 12.75, which is a fact about the solve and not about the score, and a model that is not scale-invariant has to measure this again for itself",
+      "reason": "measured over twenty splits, the four candidates agree on MAE to within 2.62 EUR against a standard error of about 29, because ordinary least squares on a full-rank design is scale-invariant in fit; cond(X) does fall from 4.456e+07 to 12.75, which is a fact about the solve and not about the score, and a model that is not scale-invariant has to measure this again for itself",
       "rows_affected": 0,
       "carries": {
         "applied": false,
         "scaler": null,
         "reason": "OLS is scale-invariant in fit",
         "conditioning": {
-          "none": 43120000.0,
+          "none": 44560000.0,
           "standard": 12.75
         }
       }
     },
     {
-      "column": "all 10 feature columns",
+      "column": "all 11 feature columns",
       "action": "selected the one-hot + min-max combination: one-hot encoding and min-max scaling, both fitted inside each training split",
       "reason": "lowest mean held-out MAE among the sixteen combinations of the four encoders and the four Week 3 scalers; Ridge is penalised and so not scale-invariant, which is the re-measurement the Week 3 'NO scaler' entry asks for",
       "rows_affected": 4000,
@@ -159,180 +145,130 @@
           "mpg",
           "engineSize",
           "paintQuality%",
-          "previousOwners"
+          "previousOwners",
+          "km_per_year"
         ],
         "dropped": [
           "model"
         ],
         "fitted_per_split": true,
         "evaluation": "20 repeated 80/20 holdouts",
-        "metric": "test MAE",
+        "metric": "held-out MAE",
         "candidates": {
           "one-hot + none": {
-            "train MAE": 3090.6206733957715,
-            "test MAE": 3099.7529871464003,
-            "train RMSE": 4994.511272797585,
-            "test RMSE": 5137.598204861513,
-            "train MAE SEM": 9.397814543738292,
-            "MAE SEM": 27.671181105578725
+            "MAE": 3054.345040666432,
+            "MAE SEM": 27.177175738016235
           },
           "one-hot + standard": {
-            "train MAE": 3091.418585608243,
-            "test MAE": 3100.5725062892343,
-            "train RMSE": 4994.4594246584165,
-            "test RMSE": 5137.943565884243,
-            "train MAE SEM": 9.409508787657074,
-            "MAE SEM": 27.67813408501969
+            "MAE": 3055.238850521171,
+            "MAE SEM": 27.20062976817087
           },
           "one-hot + min-max": {
-            "train MAE": 3076.437927958926,
-            "test MAE": 3086.9963775865444,
-            "train RMSE": 5000.988371821766,
-            "test RMSE": 5143.3752772722855,
-            "train MAE SEM": 9.024392291997325,
-            "MAE SEM": 27.814061361254065
+            "MAE": 3041.193520872466,
+            "MAE SEM": 27.1367190273014
           },
           "one-hot + robust": {
-            "train MAE": 3091.3199724984306,
-            "test MAE": 3100.4846124110754,
-            "train RMSE": 4994.458644367221,
-            "test RMSE": 5137.978501350172,
-            "train MAE SEM": 9.40915682083009,
-            "MAE SEM": 27.674547530540575
+            "MAE": 3055.13952850603,
+            "MAE SEM": 27.19646744438515
           },
           "ordinal + none": {
-            "train MAE": 3708.2312858959644,
-            "test MAE": 3710.1643376545594,
-            "train RMSE": 5602.1285580578115,
-            "test RMSE": 5694.925455027844,
-            "train MAE SEM": 9.006117657384058,
-            "MAE SEM": 28.621191807757324
+            "MAE": 3664.4215101734394,
+            "MAE SEM": 27.015339864758193
           },
           "ordinal + standard": {
-            "train MAE": 3708.6676380731865,
-            "test MAE": 3710.6048423279813,
-            "train RMSE": 5602.118718853155,
-            "test RMSE": 5694.98662093849,
-            "train MAE SEM": 9.01507512231902,
-            "MAE SEM": 28.67645923323542
+            "MAE": 3664.8463573852882,
+            "MAE SEM": 27.07571277772156
           },
           "ordinal + min-max": {
-            "train MAE": 3700.0390853568288,
-            "test MAE": 3700.132097386779,
-            "train RMSE": 5607.529416410297,
-            "test RMSE": 5702.522657414143,
-            "train MAE SEM": 8.710912938361314,
-            "MAE SEM": 27.948246474329995
+            "MAE": 3654.5940570220578,
+            "MAE SEM": 26.529176943813376
           },
           "ordinal + robust": {
-            "train MAE": 3708.5648755475995,
-            "test MAE": 3710.471593030513,
-            "train RMSE": 5602.120106509117,
-            "test RMSE": 5695.012028539166,
-            "train MAE SEM": 9.014549770255973,
-            "MAE SEM": 28.672200456486472
+            "MAE": 3664.7044512629204,
+            "MAE SEM": 27.073865441858455
           },
           "count + none": {
-            "train MAE": 3508.8031792870133,
-            "test MAE": 3510.2356324048415,
-            "train RMSE": 5391.7232488718855,
-            "test RMSE": 5502.664908190261,
-            "train MAE SEM": 8.616875354017273,
-            "MAE SEM": 24.749629969478438
+            "MAE": 3464.6906841077116,
+            "MAE SEM": 24.589826174538707
           },
           "count + standard": {
-            "train MAE": 3509.2607975199003,
-            "test MAE": 3511.0418438881597,
-            "train RMSE": 5391.563689330795,
-            "test RMSE": 5503.005301090345,
-            "train MAE SEM": 8.658115284632549,
-            "MAE SEM": 24.727819145594005
+            "MAE": 3465.512763136264,
+            "MAE SEM": 24.607931911641344
           },
           "count + min-max": {
-            "train MAE": 3494.432123936148,
-            "test MAE": 3496.6137770282016,
-            "train RMSE": 5396.723629419331,
-            "test RMSE": 5508.831454567773,
-            "train MAE SEM": 8.321409354131678,
-            "MAE SEM": 24.919776653741224
+            "MAE": 3451.6463959868206,
+            "MAE SEM": 24.61075222188358
           },
           "count + robust": {
-            "train MAE": 3509.079782218791,
-            "test MAE": 3510.8525321915636,
-            "train RMSE": 5391.56483028788,
-            "test RMSE": 5503.013463390458,
-            "train MAE SEM": 8.659554325025022,
-            "MAE SEM": 24.730312170606684
+            "MAE": 3465.3172791367333,
+            "MAE SEM": 24.607210708213124
           },
           "target + none": {
-            "train MAE": 3229.931758124195,
-            "test MAE": 3235.779141191014,
-            "train RMSE": 5126.038965497766,
-            "test RMSE": 5253.698968295072,
-            "train MAE SEM": 10.252956026057912,
-            "MAE SEM": 29.492062601213508
+            "MAE": 3191.6819423920733,
+            "MAE SEM": 29.089868460781208
           },
           "target + standard": {
-            "train MAE": 3230.5560334104216,
-            "test MAE": 3236.4217348682873,
-            "train RMSE": 5126.026149464764,
-            "test RMSE": 5253.862861287109,
-            "train MAE SEM": 10.259902064211632,
-            "MAE SEM": 29.49511176253356
+            "MAE": 3192.2887120571304,
+            "MAE SEM": 29.109643852153845
           },
           "target + min-max": {
-            "train MAE": 3214.4241782200497,
-            "test MAE": 3220.9077598416516,
-            "train RMSE": 5131.19597485587,
-            "test RMSE": 5259.933807058963,
-            "train MAE SEM": 9.912512903558145,
-            "MAE SEM": 29.570087658853616
+            "MAE": 3178.3322944635975,
+            "MAE SEM": 29.092561648182777
           },
           "target + robust": {
-            "train MAE": 3230.347916747923,
-            "test MAE": 3236.2112338406596,
-            "train RMSE": 5126.0273891824345,
-            "test RMSE": 5253.876074453387,
-            "train MAE SEM": 10.258920030628268,
-            "MAE SEM": 29.48983196260977
+            "MAE": 3192.0850683872945,
+            "MAE SEM": 29.10490854153908
           }
         }
       }
     },
     {
-      "column": "24 encoded columns",
-      "action": "select features with the sequence: filter -> wrapper -> embedded strategy, refitted inside each training split",
+      "column": "mileage, year",
+      "action": "added km_per_year = mileage / (2026 - year) as a numeric column, unlogged",
+      "reason": "lower paired held-out MAE than the recipe without it; log1p on it gave the gain back",
+      "rows_affected": 4000,
+      "carries": {
+        "feature": "km_per_year",
+        "formula": "mileage / (2026 - year)",
+        "log1p": false,
+        "evaluation": "20 repeated 80/20 holdouts",
+        "metric": "paired dMAE against the recipe without it, in euros",
+        "candidates": {
+          "km_per_year": {
+            "dMAE": -45.338195060359546
+          },
+          "log1p(km_per_year)": {
+            "dMAE": -1.3103020595528534
+          }
+        }
+      }
+    },
+    {
+      "column": "25 encoded columns",
+      "action": "select features with the vote: 2 of 3 families strategy, refitted inside each training split",
       "reason": "smaller paired MAE gap to the all-features arm than the other combination; a combination is used so that no single technique decides the retained set",
       "rows_affected": 4000,
       "carries": {
         "strategy": {
-          "kind": "sequence",
-          "stages": [
-            {
-              "stage": "filter",
-              "selector": "CorrelationFilter(k=None, redundancy=0.7)"
-            },
-            {
-              "stage": "wrapper",
-              "selector": "RFE(estimator=Ridge(random_state=42), n_features_to_select=20, step=1, importance_getter='auto', verbose=0)"
-            },
-            {
-              "stage": "embedded",
-              "selector": "SelectFromModel(estimator=Lasso(alpha=30, random_state=42), threshold=1e-08, prefit=False, importance_getter='auto', norm_order=1, max_features=None)"
-            }
-          ]
+          "kind": "vote",
+          "minimum": 2,
+          "members": {
+            "filter": "CorrelationFilter(k=None, redundancy=0.7)",
+            "wrapper": "RFE(estimator=Ridge(alpha=1.0, copy_X=True, fit_intercept=True, max_iter=None, positive=False, random_state=42, solver='auto', tol=0.0001), importance_getter='auto', n_features_to_select=20, step=1, verbose=0)",
+            "embedded": "SelectFromModel(estimator=Lasso(alpha=30, copy_X=True, fit_intercept=True, max_iter=1000, positive=False, precompute=False, random_state=42, selection='cyclic', tol=0.0001, warm_start=False), importance_getter='auto', max_features=None, norm_order=1, prefit=False, threshold=1e-08)"
+          }
         },
         "fitted_per_split": true,
         "evaluation": "20 repeated 80/20 holdouts",
         "metric": "paired dMAE against the all-features arm, in euros",
         "candidates": {
           "sequence: filter -> wrapper -> embedded": {
-            "dMAE": -5.45802473706392,
-            "n": 14.55
+            "dMAE": 42.21125984704156,
+            "n": 14.6
           },
           "vote: 2 of 3 families": {
-            "dMAE": -1.6747146788122564,
-            "n": 20.85
+            "dMAE": -3.712921148652822,
+            "n": 21.7
           }
         },
         "applied": "from Week 5 onward"

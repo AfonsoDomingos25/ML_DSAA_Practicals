@@ -92,8 +92,8 @@
     },
     {
       "column": "11 training-volume columns",
-      "action": "log1p, and log1p on nothing else",
-      "reason": "measured over 20 paired splits on identical held-out rows: F1 0.8506 against 0.8182 untouched, a paired +0.0325 +/- 0.0030, better on 20 of 20; these columns are right-skewed by factors of 1.57 to 3.06, and log1p is stateless, so there is nothing to fit and therefore nothing to leak",
+      "action": "outlier treatment: log1p, and log1p on nothing else",
+      "reason": "five outlier treatments were compared on 20 paired splits of identical held-out rows; log1p won, F1 0.8506 against 0.8182 for keeping every row, a paired +0.0325 +/- 0.0030, better on 20 of 20; dropping rows by the 1.5*IQR rule removes 67.33% of the file for +0.0022 +/- 0.0045; log1p fits nothing, so each later week applies it inside its own split",
       "rows_affected": 11,
       "carries": {
         "applied": false,
@@ -110,18 +110,9 @@
           "Plyometric training",
           "Sport-specific training",
           "Other training"
-        ]
-      }
-    },
-    {
-      "column": "14 numeric columns",
-      "action": "NO outlier treatment",
-      "reason": "five rules were compared and none earned its place; dropping rows by the 1.5*IQR rule removes 67.33% of the file and moves the win rate from 0.6040 to 0.3933, because the rows it deletes win at 0.7063, so it preferentially deletes the signal; on identical held-out rows it scores +0.0022 +/- 0.0045 against keeping everything, half a standard error, so the score does not separate them and the row count and the class rate decide",
-      "rows_affected": 0,
-      "carries": {
-        "applied": false,
+        ],
         "outliers": "keep",
-        "rule_tested": "IQR k=1.5"
+        "rule_tested": "log1p against IQR, z-score and winsorizing"
       }
     },
     {
@@ -166,151 +157,71 @@
         ],
         "fitted_per_split": true,
         "evaluation": "20 repeated 80/20 holdouts",
-        "metric": "test F1",
+        "metric": "held-out F1",
         "candidates": {
           "one-hot + none": {
-            "train F1": 0.8557799450006524,
-            "test F1": 0.8518877375386984,
-            "train accuracy": 0.817359375,
-            "test accuracy": 0.813125,
-            "train F1 SEM": 0.0004048433025513459,
-            "F1 SEM": 0.002089389212558893,
-            "mean iterations": 1000.0
+            "F1": 0.8518877375386985,
+            "F1 SEM": 0.0020893892125588925
           },
           "one-hot + standard": {
-            "train F1": 0.8556242244727997,
-            "test F1": 0.8523222822791844,
-            "train accuracy": 0.81703125,
-            "test accuracy": 0.8135625,
-            "train F1 SEM": 0.0006244020687583158,
-            "F1 SEM": 0.0017538640861025773,
-            "mean iterations": 55.75
+            "F1": 0.8523222822791846,
+            "F1 SEM": 0.0017538640861025807
           },
           "one-hot + min-max": {
-            "train F1": 0.8552824071071722,
-            "test F1": 0.8518358264711734,
-            "train accuracy": 0.8160624999999999,
-            "test accuracy": 0.8125625,
-            "train F1 SEM": 0.00047870044858889485,
-            "F1 SEM": 0.002169641185225463,
-            "mean iterations": 42.7
+            "F1": 0.8518358264711734,
+            "F1 SEM": 0.00216964118522545
           },
           "one-hot + robust": {
-            "train F1": 0.855472776813112,
-            "test F1": 0.8523478770651925,
-            "train accuracy": 0.816828125,
-            "test accuracy": 0.8135625,
-            "train F1 SEM": 0.0005935461708665676,
-            "F1 SEM": 0.0017399910665723865,
-            "mean iterations": 52.25
+            "F1": 0.8523478770651927,
+            "F1 SEM": 0.0017399910665723858
           },
           "ordinal + none": {
-            "train F1": 0.8328919350081939,
-            "test F1": 0.8323562633156103,
-            "train accuracy": 0.789546875,
-            "test accuracy": 0.7886875,
-            "train F1 SEM": 0.000505666192071642,
-            "F1 SEM": 0.001417974449437498,
-            "mean iterations": 1000.0
+            "F1": 0.8323562633156103,
+            "F1 SEM": 0.0014179744494374944
           },
           "ordinal + standard": {
-            "train F1": 0.8330690014036852,
-            "test F1": 0.8318809176153961,
-            "train accuracy": 0.7900625,
-            "test accuracy": 0.7880625,
-            "train F1 SEM": 0.00043268584336426095,
-            "F1 SEM": 0.0015257818776602287,
-            "mean iterations": 17.05
+            "F1": 0.8318809176153961,
+            "F1 SEM": 0.0015257818776602365
           },
           "ordinal + min-max": {
-            "train F1": 0.8330367420189271,
-            "test F1": 0.8308858031983896,
-            "train accuracy": 0.7884374999999999,
-            "test accuracy": 0.78575,
-            "train F1 SEM": 0.0005572050764661859,
-            "F1 SEM": 0.0020451318703684643,
-            "mean iterations": 28.95
+            "F1": 0.8308858031983896,
+            "F1 SEM": 0.0020451318703684643
           },
           "ordinal + robust": {
-            "train F1": 0.8332265854435672,
-            "test F1": 0.8319366490876922,
-            "train accuracy": 0.790125,
-            "test accuracy": 0.788,
-            "train F1 SEM": 0.00043476687228791064,
-            "F1 SEM": 0.0016451184604399504,
-            "mean iterations": 45.3
+            "F1": 0.831936649087692,
+            "F1 SEM": 0.001645118460439947
           },
           "count + none": {
-            "train F1": 0.8173289463679938,
-            "test F1": 0.8171706513887923,
-            "train accuracy": 0.76890625,
-            "test accuracy": 0.7688125,
-            "train F1 SEM": 0.0005189647398542279,
-            "F1 SEM": 0.0018229469273155052,
-            "mean iterations": 1000.0
+            "F1": 0.8155925209984016,
+            "F1 SEM": 0.0020579897932232515
           },
           "count + standard": {
-            "train F1": 0.8268923092670771,
-            "test F1": 0.8233615536721507,
-            "train accuracy": 0.780765625,
-            "test accuracy": 0.7761875,
-            "train F1 SEM": 0.0005564391551501683,
-            "F1 SEM": 0.001854146654032323,
-            "mean iterations": 15.45
+            "F1": 0.8233615536721508,
+            "F1 SEM": 0.001854146654032331
           },
           "count + min-max": {
-            "train F1": 0.8272014954497905,
-            "test F1": 0.8251778769481385,
-            "train accuracy": 0.77965625,
-            "test accuracy": 0.7775624999999999,
-            "train F1 SEM": 0.0005725918803160853,
-            "F1 SEM": 0.0016901055683758953,
-            "mean iterations": 29.85
+            "F1": 0.8252772498946959,
+            "F1 SEM": 0.0016479477130359114
           },
           "count + robust": {
-            "train F1": 0.8268012807999996,
-            "test F1": 0.823147377126244,
-            "train accuracy": 0.78046875,
-            "test accuracy": 0.7758125,
-            "train F1 SEM": 0.0005505444706753399,
-            "F1 SEM": 0.0018465851872231376,
-            "mean iterations": 50.6
+            "F1": 0.8231651301034135,
+            "F1 SEM": 0.0018344159371793752
           },
           "target + none": {
-            "train F1": 0.8245439203136756,
-            "test F1": 0.8221275885796911,
-            "train accuracy": 0.778125,
-            "test accuracy": 0.7751875,
-            "train F1 SEM": 0.0008189602553443037,
-            "F1 SEM": 0.0021446958491564616,
-            "mean iterations": 1000.0
+            "F1": 0.8224331264980002,
+            "F1 SEM": 0.0016994235192592765
           },
           "target + standard": {
-            "train F1": 0.8309610498563418,
-            "test F1": 0.826165286290987,
-            "train accuracy": 0.786453125,
-            "test accuracy": 0.7809375000000001,
-            "train F1 SEM": 0.0005333085744437318,
-            "F1 SEM": 0.002088197640821612,
-            "mean iterations": 14.85
+            "F1": 0.826165286290987,
+            "F1 SEM": 0.002088197640821609
           },
           "target + min-max": {
-            "train F1": 0.8304180940947097,
-            "test F1": 0.8266172209084939,
-            "train accuracy": 0.784703125,
-            "test accuracy": 0.7805,
-            "train F1 SEM": 0.00042400455855161014,
-            "F1 SEM": 0.0017698260482197617,
-            "mean iterations": 33.75
+            "F1": 0.8267339695538105,
+            "F1 SEM": 0.0017888103843732956
           },
           "target + robust": {
-            "train F1": 0.83093359874515,
-            "test F1": 0.8261989058988852,
-            "train accuracy": 0.786296875,
-            "test accuracy": 0.780875,
-            "train F1 SEM": 0.000568886703310432,
-            "F1 SEM": 0.0019267045797650242,
-            "mean iterations": 45.95
+            "F1": 0.8265408872347793,
+            "F1 SEM": 0.002042827384093658
           }
         }
       }
@@ -326,8 +237,8 @@
           "minimum": 2,
           "members": {
             "filter": "CorrelationFilter(k=35, redundancy=0.7)",
-            "wrapper": "RFE(estimator=LogisticRegression(max_iter=1000, random_state=42), n_features_to_select=30, step=1, importance_getter='auto', verbose=0)",
-            "embedded": "SelectFromModel(estimator=LogisticRegression(C=0.1, l1_ratio=1, max_iter=1000, random_state=42,\n                   solver='liblinear'), threshold=1e-08, prefit=False, importance_getter='auto', norm_order=1, max_features=None)"
+            "wrapper": "RFE(estimator=LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True, intercept_scaling=1, l1_ratio=0.0, max_iter=1000, n_jobs=None, penalty='deprecated', random_state=42, solver='lbfgs', tol=0.0001, verbose=0, warm_start=False), importance_getter='auto', n_features_to_select=30, step=1, verbose=0)",
+            "embedded": "SelectFromModel(estimator=LogisticRegression(C=0.1, class_weight=None, dual=False, fit_intercept=True, intercept_scaling=1, l1_ratio=1, max_iter=1000, n_jobs=None, penalty='deprecated', random_state=42, solver='liblinear', tol=0.0001, verbose=0, warm_start=False), importance_getter='auto', max_features=None, norm_order=1, prefit=False, threshold=1e-08)"
           }
         },
         "fitted_per_split": true,
