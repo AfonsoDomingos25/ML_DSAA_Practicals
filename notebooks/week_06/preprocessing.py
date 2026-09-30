@@ -435,10 +435,39 @@ def _selector_class(name, scores):
 
 from sklearn.base import is_classifier
 from sklearn.metrics import get_scorer
-from sklearn.model_selection import ParameterGrid, check_cv
+from sklearn.model_selection import (
+    ParameterGrid, RepeatedKFold, RepeatedStratifiedKFold, check_cv)
 from sklearn.utils import get_tags
 from sklearn.utils.metaestimators import available_if
 from sklearn.utils.parallel import Parallel, delayed
+
+
+OUTER_SPLITS = 5
+OUTER_REPEATS = 2
+
+
+def outer_splitter(task, *, random_state):
+    """Return a repeated K-fold splitter, stratified for classification.
+
+    `task` is "classification" or "regression" and picks
+    RepeatedStratifiedKFold or RepeatedKFold. `random_state` seeds the fold
+    assignment, so two calls with the same task and seed yield the same folds
+    and the scores they produce are paired.
+    """
+    if task not in ("classification", "regression"):
+        raise ValueError(f"task must be classification or regression, not {task!r}")
+    design = RepeatedStratifiedKFold if task == "classification" else RepeatedKFold
+    return design(n_splits=OUTER_SPLITS, n_repeats=OUTER_REPEATS, random_state=random_state)
+
+
+def outer_folds(splitter, X, y):
+    """Return the row labels each fold scores, as one list per fold.
+
+    Labels come from `X.index` when it has one and are positions otherwise. Two
+    runs that produce equal lists divided the same rows the same way.
+    """
+    return [X.index[score_at].tolist() if hasattr(X, "index") else list(score_at)
+            for _, score_at in splitter.split(X, y)]
 
 
 class PreparedEstimator(BaseEstimator):
