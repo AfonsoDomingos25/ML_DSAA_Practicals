@@ -15,11 +15,13 @@ corresponding practical class.
 | Week 3 | Deepening exploration: a price, not a class | [Open](notebooks/week_03/week_03_deepen_exploration_regression.ipynb) | [Open](solutions/week_03/week_03_deepen_exploration_regression_solution.ipynb) |
 | Week 4 | Feature work and dimensionality reduction before selection | [Open](notebooks/week_04/week_04_feature_work_classification.ipynb) | [Open](solutions/week_04/week_04_feature_work_classification_solution.ipynb) |
 | Week 4 | Feature work on a regression target | [Open](notebooks/week_04/week_04_feature_work_regression.ipynb) | [Open](solutions/week_04/week_04_feature_work_regression_solution.ipynb) |
-| Week 5 | Performance measures | [Open](notebooks/week_05/week_05_performance_measures.ipynb) | Not yet released |
-| Week 5 | Model selection | [Open](notebooks/week_05/week_05_model_selection.ipynb) | Not yet released |
+| Week 5 | Performance measures | [Open](notebooks/week_05/week_05_performance_measures.ipynb) | [Open](solutions/week_05/week_05_performance_measures_solution.ipynb) |
+| Week 5 | Model selection | [Open](notebooks/week_05/week_05_model_selection.ipynb) | [Open](solutions/week_05/week_05_model_selection_solution.ipynb) |
 | Week 6 | Linear and logistic models | [Open](notebooks/week_06/week_06_linear_logistic.ipynb) | Not yet released |
 | Week 7 | Probability and Naive Bayes | [Open](notebooks/week_07/week_07_naive_bayes.ipynb) | Not yet released |
 | Week 7 | Bayesian regression | [Open](notebooks/week_07/week_07_bayesian_regression.ipynb) | Not yet released |
+| Week 8 | Similarity and KNN | [Open](notebooks/week_08/week_08_similarity_knn.ipynb) | Not yet released |
+| Week 8 | KNN for a numeric target | [Open](notebooks/week_08/week_08_knn_regression.ipynb) | Not yet released |
 
 Solutions are separate files, so an update will not replace the notebook in
 which you have been working.
