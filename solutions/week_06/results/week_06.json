@@ -1,0 +1,29 @@
+{
+ "week": 6,
+ "classification": {
+  "model": "logistic regression (L1, C=100, no intercept)",
+  "metric": "F1",
+  "cv": 0.8486,
+  "test": 0.8512,
+  "baseline_cv": 0.8494,
+  "baseline_test": 0.8474,
+  "context": {
+   "data": "3643cc591b0cc5324fbda0ea483a7188cb5187226e05ab98555dfb300f051a0e",
+   "recipe": "16dfc354a93701bbea0b484147cfc925a560faa8dca542c7c036365e12722058",
+   "split": "bc09baa7c8d0eebfcdbb6a42a22c2d6c6c3f868ca7869910bd1102c7b87c1507"
+  }
+ },
+ "regression": {
+  "model": "Lasso(alpha=0.0001), log(price)",
+  "metric": "MAE (EUR)",
+  "cv": 2546.5057,
+  "test": 2655.4378,
+  "baseline_cv": 3019.3042,
+  "baseline_test": 3076.7256,
+  "context": {
+   "data": "be6367c4abb813a84db59031f4aadfdc77a1fcb87090317c8d7054602dcb2a5c",
+   "recipe": "6468dd85dd1b70af219e3b0e44e259153c294f33a02fda94c8cf3ec07373b4d0",
+   "split": "cb4736a8f91abc4640300b38cb152b2078256206503cb8432c144322bc6a78fe"
+  }
+ }
+}
